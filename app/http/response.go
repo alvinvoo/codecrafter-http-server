@@ -30,7 +30,7 @@ func ExtractPathSegment(url string) string {
 	return ""
 }
 
-func SerializeResponse(response Response) string {
+func SerializeResponse(response *Response) string {
 	statusLine := fmt.Sprintf("HTTP/1.1 %d %s\r\n", response.Status.StatusCode, response.Status.StatusText)
 
 	var (
@@ -51,8 +51,8 @@ func SerializeResponse(response Response) string {
 	return fmt.Sprintf("%s%s%s", statusLine, headers, body)
 }
 
-func NewNotFoundResponse() Response {
-	return Response{
+func NewNotFoundResponse() *Response {
+	return &Response{
 		Status: Status{
 			StatusCode: NOT_FOUND,
 			StatusText: "Not Found",
@@ -60,8 +60,8 @@ func NewNotFoundResponse() Response {
 	}
 }
 
-func NewBadRequestResponse(message string) Response {
-	return Response{
+func NewBadRequestResponse(message string) *Response {
+	return &Response{
 		Status: Status{
 			StatusCode: BAD_REQUEST,
 			StatusText: "Bad Request",
@@ -74,8 +74,8 @@ func NewBadRequestResponse(message string) Response {
 	}
 }
 
-func NewCreatedResponse() Response {
-	return Response{
+func NewCreatedResponse() *Response {
+	return &Response{
 		Status: Status{
 			StatusCode: CREATED,
 			StatusText: "Created",
@@ -83,8 +83,8 @@ func NewCreatedResponse() Response {
 	}
 }
 
-func NewSuccessResponse(contentType string, body string) Response {
-	return Response{
+func NewSuccessResponse(contentType string, body string) *Response {
+	return &Response{
 		Status: Status{
 			StatusCode: OK,
 			StatusText: "OK",

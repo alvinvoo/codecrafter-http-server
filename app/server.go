@@ -43,10 +43,10 @@ func main() {
 	}
 }
 
-func generateResponse(request http.Request) http.Response {
-	var response http.Response
+func generateResponse(request *http.Request) *http.Response {
+	var response *http.Response
 	if request.RequestLine.Url == "/" {
-		response = http.Response{
+		response = &http.Response{
 			Status: http.Status{
 				StatusCode: http.OK,
 				StatusText: "OK",
@@ -109,7 +109,7 @@ func handleConnection(conn net.Conn) {
 			return
 		}
 
-		serializedResponse := http.SerializeResponse(generateResponse(request))
+		serializedResponse := http.SerializeResponse(generateResponse(&request))
 
 		util.DebugLog("Response", serializedResponse)
 		_, err = tcpConn.Write([]byte(serializedResponse))
