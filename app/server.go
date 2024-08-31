@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/codecrafters-io/http-server-starter-go/app/http"
 	"github.com/codecrafters-io/http-server-starter-go/app/util"
 )
 
@@ -42,6 +43,59 @@ func main() {
 	}
 }
 
+func generateResponse(request http.Request) http.Response {
+	var response http.Response
+	if request.RequestLine.Url == "/" {
+		response = http.Response{
+			Status: http.Status{
+				StatusCode: http.OK,
+				StatusText: "OK",
+			},
+		}
+	} else if strings.HasPrefix(request.RequestLine.Url, "/echo") {
+		str := http.ExtractPathSegment(request.RequestLine.Url)
+		response = http.NewSuccessResponse("text/plain", str)
+	} else if strings.HasPrefix(request.RequestLine.Url, "/user-agent") {
+		response = http.NewSuccessResponse("text/plain", request.Headers.UserAgent)
+	} else if strings.HasPrefix(request.RequestLine.Url, "/files") {
+		fileName := http.ExtractPathSegment(request.RequestLine.Url)
+
+		if request.RequestLine.Method == "POST" {
+			if request.Headers.ContentType != "application/octet-stream" {
+				return http.NewBadRequestResponse("Content-Type must be application/octet-stream")
+			}
+
+			if request.Headers.ContentLen == 0 || request.Body == "" {
+				return http.NewBadRequestResponse("Content-Length must be greater than 0")
+			}
+
+			if request.Headers.ContentLen != len(request.Body) {
+				return http.NewBadRequestResponse("Content-Length does not match body length")
+			}
+
+			err := os.WriteFile(fmt.Sprintf("%s/%s", fileDirectory, fileName), []byte(request.Body), 0644)
+			if err != nil {
+				fmt.Println("Error writing file: ", err.Error())
+				response = http.NewBadRequestResponse(err.Error())
+			} else {
+				response = http.NewCreatedResponse()
+			}
+		} else {
+			fileContent, err := os.ReadFile(fmt.Sprintf("%s/%s", fileDirectory, fileName))
+			if err != nil {
+				fmt.Println("Error reading file: ", err.Error())
+				response = http.NewNotFoundResponse()
+			} else {
+				response = http.NewSuccessResponse("application/octet-stream", string(fileContent))
+			}
+		}
+	} else {
+		response = http.NewNotFoundResponse()
+	}
+
+	return response
+}
+
 func handleConnection(conn net.Conn) {
 	if tcpConn, ok := conn.(*net.TCPConn); ok {
 		defer tcpConn.Close()
@@ -49,42 +103,16 @@ func handleConnection(conn net.Conn) {
 		tcpConn.SetKeepAlivePeriod(10)
 
 		reader := bufio.NewReader(tcpConn)
-		request, err := unserializeRequest(reader)
+		request, err := http.UnserializeRequest(reader)
 		if err != nil {
 			fmt.Println("Error reading request: ", err.Error())
 			return
 		}
 
-		var response string
-		if request.requestLine.url == "/" {
-			response = serializeResponse(Response{
-				status: Status{
-					statusCode: 200,
-					statusText: "OK",
-				},
-			})
-			// TODO: can extract out the url path segments
-		} else if strings.HasPrefix(request.requestLine.url, "/echo") {
-			str := extractPathSegment(request.requestLine.url)
-			response = serializeResponse(NewSuccessResponse("text/plain", str))
-		} else if strings.HasPrefix(request.requestLine.url, "/user-agent") {
-			response = serializeResponse(NewSuccessResponse("text/plain", request.headers.userAgent))
-		} else if strings.HasPrefix(request.requestLine.url, "/files") {
-			fileName := extractPathSegment(request.requestLine.url)
+		serializedResponse := http.SerializeResponse(generateResponse(request))
 
-			fileContent, err := os.ReadFile(fmt.Sprintf("%s/%s", fileDirectory, fileName))
-			if err != nil {
-				fmt.Println("Error reading file: ", err.Error())
-				response = serializeResponse(NewNotFoundResponse())
-			} else {
-				response = serializeResponse(NewSuccessResponse("application/octet-stream", string(fileContent)))
-			}
-		} else {
-			response = serializeResponse(NewNotFoundResponse())
-		}
-
-		util.DebugLog("Response", response)
-		_, err = tcpConn.Write([]byte(response))
+		util.DebugLog("Response", serializedResponse)
+		_, err = tcpConn.Write([]byte(serializedResponse))
 		if err != nil {
 			fmt.Println("Error writing response: ", err.Error())
 			os.Exit(1)
