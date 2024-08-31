@@ -50,3 +50,26 @@ func serializeResponse(response Response) string {
 
 	return fmt.Sprintf("%s%s%s", statusLine, headers, body)
 }
+
+func NewNotFoundResponse() Response {
+	return Response{
+		status: Status{
+			statusCode: 404,
+			statusText: "Not Found",
+		},
+	}
+}
+
+func NewSuccessResponse(contentType string, body string) Response {
+	return Response{
+		status: Status{
+			statusCode: 200,
+			statusText: "OK",
+		},
+		headers: &RespHeaders{
+			contentType: contentType,
+			contentLen:  len(body),
+		},
+		body: body,
+	}
+}

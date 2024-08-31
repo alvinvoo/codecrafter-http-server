@@ -15,6 +15,8 @@ const (
 	PORT = 4221
 )
 
+var fileDirectory string
+
 func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Printf("Server running at port %d \n", PORT)
@@ -23,6 +25,10 @@ func main() {
 	if err != nil {
 		fmt.Printf("Failed to bind to port %d \n", PORT)
 		os.Exit(1)
+	}
+
+	if len(os.Args) > 1 && os.Args[1] == "--directory" {
+		fileDirectory = os.Args[2]
 	}
 
 	for {
@@ -60,32 +66,21 @@ func handleConnection(conn net.Conn) {
 			// TODO: can extract out the url path segments
 		} else if strings.HasPrefix(request.requestLine.url, "/echo") {
 			str := extractPathSegment(request.requestLine.url)
-			response = serializeResponse(Response{
-				status: Status{
-					statusCode: 200,
-					statusText: "OK",
-				}, headers: &RespHeaders{
-					contentType: "text/plain",
-					contentLen:  len(str),
-				}, body: str,
-			})
+			response = serializeResponse(NewSuccessResponse("text/plain", str))
 		} else if strings.HasPrefix(request.requestLine.url, "/user-agent") {
-			response = serializeResponse(Response{
-				status: Status{
-					statusCode: 200,
-					statusText: "OK",
-				}, headers: &RespHeaders{
-					contentType: "text/plain",
-					contentLen:  len(request.headers.userAgent),
-				}, body: request.headers.userAgent,
-			})
+			response = serializeResponse(NewSuccessResponse("text/plain", request.headers.userAgent))
+		} else if strings.HasPrefix(request.requestLine.url, "/files") {
+			fileName := extractPathSegment(request.requestLine.url)
+
+			fileContent, err := os.ReadFile(fmt.Sprintf("%s/%s", fileDirectory, fileName))
+			if err != nil {
+				fmt.Println("Error reading file: ", err.Error())
+				response = serializeResponse(NewNotFoundResponse())
+			} else {
+				response = serializeResponse(NewSuccessResponse("application/octet-stream", string(fileContent)))
+			}
 		} else {
-			response = serializeResponse(Response{
-				status: Status{
-					statusCode: 404,
-					statusText: "Not Found",
-				},
-			})
+			response = serializeResponse(NewNotFoundResponse())
 		}
 
 		util.DebugLog("Response", response)
