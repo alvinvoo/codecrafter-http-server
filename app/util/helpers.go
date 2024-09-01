@@ -3,7 +3,6 @@ package util
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
@@ -31,5 +30,5 @@ func GzipEncode(body string) (string, error) {
 		return "", fmt.Errorf("error writing compressed data: %s", err.Error())
 	}
 
-	return hex.EncodeToString(buf.Bytes()), nil
+	return buf.String(), nil
 }
