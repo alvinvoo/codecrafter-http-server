@@ -52,6 +52,14 @@ func handleEncoding(request *http.Request, response *http.Response) {
 				// and set the Content-Encoding header to "gzip"
 
 				response.Headers.ContentEncoding = append(response.Headers.ContentEncoding, "gzip")
+				body, err := util.GzipEncode(response.Body)
+				if err != nil {
+					fmt.Println("Error compressing response body: ", err.Error())
+					response = http.NewInternalServerErrorResponse(err.Error())
+				}
+
+				response.Body = body
+				response.Headers.ContentLen = len(response.Body)
 			}
 		}
 	}

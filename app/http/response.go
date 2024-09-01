@@ -80,6 +80,20 @@ func NewBadRequestResponse(message string) *Response {
 	}
 }
 
+func NewInternalServerErrorResponse(message string) *Response {
+	return &Response{
+		Status: Status{
+			StatusCode: INTERNAL_SERVER_ERROR,
+			StatusText: "Internal Server Error",
+		},
+		Headers: &RespHeaders{
+			ContentType: "text/plain",
+			ContentLen:  len(message),
+		},
+		Body: message,
+	}
+}
+
 func NewCreatedResponse() *Response {
 	return &Response{
 		Status: Status{

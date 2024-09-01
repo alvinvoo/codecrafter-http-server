@@ -106,6 +106,7 @@ func UnserializeRequest(reader *bufio.Reader) (Request, error) {
 				return Request{}, fmt.Errorf("unexpected content length, got %d bytes, expected %d", n, request.Headers.ContentLen)
 			}
 
+			// we assume the body is UTF-8 string
 			request.Body = string(bodyBytes)
 		}
 		return request, nil
