@@ -44,15 +44,14 @@ func main() {
 }
 
 func handleEncoding(request *http.Request, response *http.Response) {
-	if request.Headers.AcceptEncoding != "" && response.Body != "" {
-		encodings := strings.Split(request.Headers.AcceptEncoding, ",")
-		for _, encoding := range encodings {
+	if len(request.Headers.AcceptEncoding) != 0 && response.Body != "" {
+		// since response's body has something, response header should alrdy be set
+		for _, encoding := range request.Headers.AcceptEncoding {
 			if encoding == "gzip" {
 				// Compress the response body using gzip
 				// and set the Content-Encoding header to "gzip"
 
-				// since response's body has something, response header should alrdy be set
-				response.Headers.ContentEncoding = "gzip"
+				response.Headers.ContentEncoding = append(response.Headers.ContentEncoding, "gzip")
 			}
 		}
 	}

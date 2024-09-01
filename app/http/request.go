@@ -19,7 +19,7 @@ type ReqHeaders struct {
 	Accept         string
 	ContentType    string
 	ContentLen     int
-	AcceptEncoding string
+	AcceptEncoding []string
 }
 
 type Request struct {
@@ -89,7 +89,7 @@ func UnserializeRequest(reader *bufio.Reader) (Request, error) {
 					}
 					request.Headers.ContentLen = length
 				case "accept-encoding":
-					request.Headers.AcceptEncoding = valueField
+					request.Headers.AcceptEncoding = strings.Split(valueField, ", ")
 				}
 			}
 		}

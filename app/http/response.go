@@ -13,7 +13,7 @@ type Status struct {
 type RespHeaders struct {
 	ContentType     string
 	ContentLen      int
-	ContentEncoding string
+	ContentEncoding []string
 }
 
 type Response struct {
@@ -39,8 +39,9 @@ func SerializeResponse(response *Response) string {
 		body    string
 	)
 	if response.Headers != nil {
-		if response.Headers.ContentEncoding != "" {
-			headers = fmt.Sprintf("Content-Encoding: %s\r\n", response.Headers.ContentEncoding)
+		if len(response.Headers.ContentEncoding) != 0 {
+			contentEncodings := strings.Join(response.Headers.ContentEncoding, ", ")
+			headers = fmt.Sprintf("Content-Encoding: %s\r\n", contentEncodings)
 		}
 
 		headers += fmt.Sprintf("Content-Type: %s\r\nContent-Length: %d\r\n\r\n", response.Headers.ContentType, response.Headers.ContentLen)
