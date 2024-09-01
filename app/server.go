@@ -43,8 +43,24 @@ func main() {
 	}
 }
 
+func handleEncoding(request *http.Request, response *http.Response) {
+	if request.Headers.AcceptEncoding != "" && response.Body != "" {
+		encodings := strings.Split(request.Headers.AcceptEncoding, ",")
+		for _, encoding := range encodings {
+			if encoding == "gzip" {
+				// Compress the response body using gzip
+				// and set the Content-Encoding header to "gzip"
+
+				// since response's body has something, response header should alrdy be set
+				response.Headers.ContentEncoding = "gzip"
+			}
+		}
+	}
+}
+
 func generateResponse(request *http.Request) *http.Response {
 	var response *http.Response
+
 	if request.RequestLine.Url == "/" {
 		response = &http.Response{
 			Status: http.Status{
@@ -92,6 +108,8 @@ func generateResponse(request *http.Request) *http.Response {
 	} else {
 		response = http.NewNotFoundResponse()
 	}
+
+	handleEncoding(request, response)
 
 	return response
 }

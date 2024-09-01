@@ -11,8 +11,9 @@ type Status struct {
 }
 
 type RespHeaders struct {
-	ContentType string
-	ContentLen  int
+	ContentType     string
+	ContentLen      int
+	ContentEncoding string
 }
 
 type Response struct {

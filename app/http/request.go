@@ -14,11 +14,12 @@ type RequestLine struct {
 }
 
 type ReqHeaders struct {
-	Host        string
-	UserAgent   string
-	Accept      string
-	ContentType string
-	ContentLen  int
+	Host           string
+	UserAgent      string
+	Accept         string
+	ContentType    string
+	ContentLen     int
+	AcceptEncoding string
 }
 
 type Request struct {
@@ -87,6 +88,8 @@ func UnserializeRequest(reader *bufio.Reader) (Request, error) {
 						return Request{}, fmt.Errorf("error converting content length to integer: %s", err.Error())
 					}
 					request.Headers.ContentLen = length
+				case "accept-encoding":
+					request.Headers.AcceptEncoding = valueField
 				}
 			}
 		}
