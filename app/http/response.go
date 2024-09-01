@@ -39,7 +39,11 @@ func SerializeResponse(response *Response) string {
 		body    string
 	)
 	if response.Headers != nil {
-		headers = fmt.Sprintf("Content-Type: %s\r\nContent-Length: %d\r\n\r\n", response.Headers.ContentType, response.Headers.ContentLen)
+		if response.Headers.ContentEncoding != "" {
+			headers = fmt.Sprintf("Content-Encoding: %s\r\n", response.Headers.ContentEncoding)
+		}
+
+		headers += fmt.Sprintf("Content-Type: %s\r\nContent-Length: %d\r\n\r\n", response.Headers.ContentType, response.Headers.ContentLen)
 	}
 	if response.Body != "" {
 		body = response.Body
